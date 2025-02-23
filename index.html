@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MySQL转ER图工具</title>
+
+    <!-- 引入第三方库 -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Vis.js -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/dist/vis-network.min.css"
+    />
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/vis-data@7.1.4/peer/umd/vis-data.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/peer/umd/vis-network.min.js"
+    ></script>
+
+    <!-- Monaco Editor -->
+    <script>
+      var require = {
+        paths: {
+          vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs",
+        },
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>MySQL转ER图工具</h1>
+      </header>
+
+      <main>
+        <div class="editor-container">
+          <div id="sql-editor"></div>
+          <button id="parse-btn" class="primary">
+            <i class="fas fa-play"></i> 生成ER图
+          </button>
+        </div>
+
+        <div class="diagram-container">
+          <div id="er-diagram"></div>
+          <div class="toolbar">
+            <button id="fullscreen-btn">
+              <i class="fas fa-expand"></i> 全屏
+            </button>
+            <button id="export-png">
+              <i class="fas fa-download"></i> 导出PNG
+            </button>
+            <button id="export-pdf">
+              <i class="fas fa-file-pdf"></i> 导出PDF
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- 全屏模态框 -->
+    <div id="fullscreen-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>ER图全屏视图</h2>
+          <button class="close-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div id="fullscreen-diagram"></div>
+      </div>
+    </div>
+
+    <script src="js/parser.js"></script>
+    <script src="js/visualizer.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
