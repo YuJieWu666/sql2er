@@ -6,8 +6,29 @@ class ERVisualizer {
     this.options = {
       nodes: {
         shape: "box",
-        margin: 10,
+        margin: {
+          top: 10,
+          bottom: 10,
+          left: 15,
+          right: 15,
+        },
         borderWidth: 1,
+        fixed: {
+          x: false,
+          y: false,
+        },
+        color: {
+          background: "#ffffff",
+          border: "#0366d6",
+          highlight: {
+            background: "#f1f8ff",
+            border: "#0366d6",
+          },
+          hover: {
+            background: "#f1f8ff",
+            border: "#0366d6",
+          },
+        },
         shadow: {
           enabled: true,
           color: "rgba(0,0,0,0.1)",
@@ -17,37 +38,25 @@ class ERVisualizer {
       groups: {
         tables: {
           shape: "box",
-          color: {
-            border: "#e1e4e8",
-            background: "#ffffff",
-          },
           font: {
             size: 14,
             face: "Arial, sans-serif",
+            color: "#24292e",
+            bold: {
+              color: "#0366d6",
+              size: 16,
+              face: "Arial, sans-serif",
+              mod: "bold",
+            },
+            mono: {
+              color: "#6f42c1",
+              size: 13,
+              face: "Consolas, Monaco, monospace",
+              mod: "",
+            },
           },
-        },
-        headers: {
-          shape: "box",
-          color: {
-            border: "#0366d6",
-            background: "#0366d6",
-          },
-          font: {
-            color: "#ffffff",
-            size: 16,
-            face: "Arial, sans-serif",
-            bold: true,
-          },
-        },
-        columns: {
-          shape: "box",
-          color: {
-            border: "#e1e4e8",
-            background: "#ffffff",
-          },
-          font: {
-            size: 14,
-            face: "Arial, sans-serif",
+          shapeProperties: {
+            borderRadius: 3,
           },
         },
       },
@@ -56,6 +65,7 @@ class ERVisualizer {
           enabled: true,
           type: "curvedCW",
           roundness: 0.2,
+          forceDirection: "none",
         },
         color: {
           color: "#0366d6",
@@ -65,81 +75,77 @@ class ERVisualizer {
         width: 1,
         selectionWidth: 2,
         hoverWidth: 2,
+        physics: false,
         selfReference: {
           size: 20,
           angle: Math.PI / 4,
         },
       },
       physics: {
-        enabled: true,
-        hierarchicalRepulsion: {
+        enabled: false,
+        repulsion: {
           nodeDistance: 200,
           damping: 0.09,
+          springLength: 300,
         },
-        solver: "hierarchicalRepulsion",
+        solver: "repulsion",
         stabilization: {
           enabled: true,
           iterations: 1000,
           updateInterval: 25,
         },
       },
-      layout: {
-        hierarchical: {
-          direction: "UD",
-          sortMethod: "directed",
-          levelSeparation: 250,
-          nodeSpacing: 300,
-          treeSpacing: 200,
-          blockShifting: true,
-          edgeMinimization: true,
-          parentCentralization: false,
-        },
+      manipulation: {
+        enabled: true,
+        initiallyActive: true,
+        dragNodes: true,
+        dragView: true,
       },
     };
   }
 
   // 创建表结构的节点和边
   createTableStructure(table) {
-    const nodes = [];
-    const edges = [];
+    const tableHTML = this.createTableHTML(table);
+    return {
+      nodes: [
+        {
+          id: table.name,
+          label: tableHTML,
+          group: "tables",
+          shape: "box",
+          font: {
+            multi: true,
+            face: "monospace",
+          },
+        },
+      ],
+      edges: [],
+    };
+  }
 
-    // 表头节点
-    const headerId = `${table.name}_header`;
-    nodes.push({
-      id: headerId,
-      label: table.name.toUpperCase(),
-      group: "headers",
-      level: 0,
-    });
+  // 创建表格HTML
+  createTableHTML(table) {
+    let label = "";
 
-    // 列节点
+    // 表头 - 使用粗体和颜色
+    label += `<b><i><code>\u3000${table.name.toUpperCase()}\u3000</code></i></b>\n`;
+    label += "─".repeat(Math.max(20, table.name.length + 2)) + "\n";
+
+    // 列
     table.columns.forEach((col, index) => {
-      const columnId = `${table.name}_${col.name}`;
       const icons = [];
-
-      // 添加图标
       if (col.isPrimaryKey) icons.push("🔑");
       if (!col.isNullable) icons.push("❗");
       if (col.isAutoIncrement) icons.push("🔄");
 
-      nodes.push({
-        id: columnId,
-        label: `${col.name}\n${col.type} ${icons.join(" ")}`,
-        group: "columns",
-        level: 1,
-        columnData: col, // 存储列信息用于关系连接
-      });
-
-      // 连接表头和列
-      edges.push({
-        from: headerId,
-        to: columnId,
-        arrows: "",
-        color: { opacity: 0.3 },
-      });
+      // 使用等宽字体和对齐
+      const iconsPart = icons.length ? ` ${icons.join(" ")}` : "";
+      const typePart = `<code>${col.type}</code>`;
+      label += `${col.name} : ${typePart}${iconsPart}\n`;
     });
 
-    return { nodes, edges };
+    return label;
   }
 
   // 创建表关系的边
@@ -148,14 +154,14 @@ class ERVisualizer {
 
     erModel.relationships.forEach((rel) => {
       rel.fromColumns.forEach((fromCol, index) => {
-        const fromId = `${rel.from}_${fromCol}`;
-        const toId = `${rel.to}_${rel.toColumns[index]}`;
+        const fromId = rel.from;
+        const toId = rel.to;
 
         edges.push({
           from: fromId,
           to: toId,
           arrows: "to",
-          label: "references",
+          label: `${fromCol} → ${rel.toColumns[index]}`,
           font: {
             align: "middle",
             size: 12,
@@ -196,10 +202,8 @@ class ERVisualizer {
   // 渲染ER图
   render(erModel) {
     const data = this.transformToVisData(erModel);
-
     const nodes = new vis.DataSet(data.nodes);
     const edges = new vis.DataSet(data.edges);
-
     const visData = { nodes, edges };
 
     if (this.network) {
@@ -207,11 +211,6 @@ class ERVisualizer {
     }
 
     this.network = new vis.Network(this.container, visData, this.options);
-
-    // 初始化完成后禁用物理引擎
-    this.network.once("stabilized", () => {
-      this.network.setOptions({ physics: { enabled: false } });
-    });
 
     // 双击节点时聚焦
     this.network.on("doubleClick", (params) => {
@@ -221,6 +220,15 @@ class ERVisualizer {
           animation: true,
         });
       }
+    });
+
+    // 拖动时临时启用物理引擎以实现平滑的边调整
+    this.network.on("dragStart", () => {
+      this.network.setOptions({ physics: { enabled: true } });
+    });
+
+    this.network.on("dragEnd", () => {
+      this.network.setOptions({ physics: { enabled: false } });
     });
   }
 
