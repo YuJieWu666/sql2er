@@ -51,13 +51,15 @@ button {
 
 .sidebar-header {
   padding: 20px;
-  background: #24292e;
+  background: #2ea44f;
   color: white;
+  border-bottom: 1px solid rgba(27, 31, 35, 0.15);
 }
 
 .sidebar-header h2 {
   font-size: 1.5em;
   margin: 0;
+  font-weight: 500;
 }
 
 .sidebar-panel {
@@ -165,7 +167,13 @@ button {
   flex: 1;
   height: 100%;
   overflow: hidden;
-  background: white;
+  background-color: #ffffff;
+  background-image: linear-gradient(
+      rgba(220, 220, 220, 0.1) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(220, 220, 220, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
   position: relative;
 }
 
@@ -173,12 +181,18 @@ button {
   width: 100%;
   height: 100%;
   position: relative;
+  background: radial-gradient(
+    circle at center,
+    rgba(220, 220, 220, 0.2) 1px,
+    transparent 1px
+  );
+  background-size: 40px 40px;
 }
 
 #er-diagram {
   width: 100%;
   height: 100%;
-  background: white;
+  background: transparent;
   position: absolute;
   top: 0;
   left: 0;

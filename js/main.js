@@ -39,9 +39,27 @@ document
     }
   });
 
-document.getElementById("export-pdf").addEventListener("click", function () {
-  // TODO: 实现PDF导出
-});
+document
+  .getElementById("export-pdf")
+  .addEventListener("click", async function () {
+    try {
+      // 显示加载提示
+      this.disabled = true;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 导出中...';
+
+      // 获取PDF数据
+      const pdf = await visualizer.getPDFData();
+
+      // 下载PDF
+      pdf.download("er-diagram.pdf");
+    } catch (error) {
+      alert("导出失败：" + error.message);
+    } finally {
+      // 恢复按钮状态
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-file-pdf"></i> 导出PDF';
+    }
+  });
 
 // 全屏按钮事件
 document

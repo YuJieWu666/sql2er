@@ -325,72 +325,134 @@ class ERVisualizer {
     });
   }
 
-  // 获取当前图的PNG数据URL
-  getPNGData() {
-    return new Promise((resolve, reject) => {
-      try {
-        // 获取当前视图的尺寸和位置
-        const scale = this.network.getScale();
-        const position = this.network.getViewPosition();
-        const boundingBox = this.network.getBoundingBox();
+  // 获取当前图的PNG数据
+  async getPNGData() {
+    try {
+      // 创建一个临时容器用于导出
+      const exportContainer = document.createElement("div");
+      exportContainer.style.width = "4000px"; // 增加尺寸以提高清晰度
+      exportContainer.style.height = "4000px";
+      exportContainer.style.position = "absolute";
+      exportContainer.style.left = "-9999px";
+      // 复制网站的网格背景样式
+      exportContainer.style.backgroundColor = "#ffffff";
+      exportContainer.style.backgroundImage = `
+        linear-gradient(rgba(220, 220, 220, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(220, 220, 220, 0.1) 1px, transparent 1px)
+      `;
+      exportContainer.style.backgroundSize = "40px 40px"; // 调整网格大小以匹配更大的尺寸
+      document.body.appendChild(exportContainer);
 
-        // 创建一个临时容器用于导出
-        const exportContainer = document.createElement("div");
-        exportContainer.style.width = "2000px";
-        exportContainer.style.height = "2000px";
-        exportContainer.style.position = "absolute";
-        exportContainer.style.left = "-9999px";
-        document.body.appendChild(exportContainer);
-
-        // 创建临时网络实例
-        const exportNetwork = new vis.Network(
-          exportContainer,
-          this.network.body.data,
-          {
-            ...this.options,
-            nodes: {
-              ...this.options.nodes,
-              font: {
-                ...this.options.nodes.font,
-                size: 16,
-              },
+      // 创建临时网络实例
+      const exportNetwork = new vis.Network(
+        exportContainer,
+        this.network.body.data,
+        {
+          ...this.options,
+          nodes: {
+            ...this.options.nodes,
+            font: {
+              ...this.options.nodes.font,
+              size: 32, // 增加字体大小
             },
-          }
-        );
+            borderWidth: 2, // 增加边框宽度
+          },
+          edges: {
+            ...this.options.edges,
+            width: 2, // 增加边的宽度
+          },
+        }
+      );
 
-        // 等待网络完全稳定
-        exportNetwork.once("stabilized", () => {
-          // 确保渲染完成
-          setTimeout(() => {
-            try {
-              // 获取画布元素
-              const canvas = exportContainer.querySelector("canvas");
-              if (!canvas) {
-                throw new Error("Canvas element not found");
-              }
-
-              // 获取画布数据
-              const dataUrl = canvas.toDataURL("image/png", 1.0);
-
-              // 清理临时元素
-              document.body.removeChild(exportContainer);
-              exportNetwork.destroy();
-
-              resolve(dataUrl);
-            } catch (error) {
-              reject(error);
-            }
-          }, 500); // 给予足够的时间完成渲染
+      // 等待网络完全稳定
+      await new Promise((resolve) => {
+        exportNetwork.once("afterDrawing", () => {
+          setTimeout(resolve, 2000); // 增加等待时间确保完全渲染
         });
+        exportNetwork.fit();
+      });
 
-        // 适应视图
-        exportNetwork.fit({
-          animation: false,
-        });
-      } catch (error) {
-        reject(error);
+      // 获取canvas元素并创建新的canvas以合并背景
+      const networkCanvas = exportNetwork.canvas.frame.canvas;
+      const finalCanvas = document.createElement("canvas");
+      finalCanvas.width = networkCanvas.width;
+      finalCanvas.height = networkCanvas.height;
+      const ctx = finalCanvas.getContext("2d");
+
+      // 绘制白色背景
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // 绘制网格
+      ctx.strokeStyle = "rgba(220, 220, 220, 0.1)";
+      ctx.lineWidth = 2; // 增加网格线宽度
+
+      // 绘制水平线
+      for (let y = 0; y < finalCanvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(finalCanvas.width, y);
+        ctx.stroke();
       }
-    });
+
+      // 绘制垂直线
+      for (let x = 0; x < finalCanvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, finalCanvas.height);
+        ctx.stroke();
+      }
+
+      // 绘制网络图
+      ctx.drawImage(networkCanvas, 0, 0);
+
+      const dataUrl = finalCanvas.toDataURL("image/png"); // 使用默认最高质量
+
+      // 清理临时元素
+      document.body.removeChild(exportContainer);
+      exportNetwork.destroy();
+
+      return dataUrl;
+    } catch (error) {
+      throw new Error("PNG生成失败: " + error.message);
+    }
+  }
+
+  // 获取当前图的PDF数据
+  async getPDFData() {
+    try {
+      // 获取PNG数据
+      const dataUrl = await this.getPNGData();
+
+      // 创建PDF文档定义
+      const docDefinition = {
+        pageSize: "A4",
+        pageOrientation: "landscape",
+        content: [
+          {
+            image: dataUrl,
+            width: 750, // A4横向宽度约为750点
+            alignment: "center",
+          },
+        ],
+      };
+
+      // 使用pdfmake创建PDF
+      return new Promise((resolve, reject) => {
+        try {
+          const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+          resolve({
+            download: (filename) => {
+              pdfDocGenerator.download(filename);
+            },
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    } catch (error) {
+      throw new Error("PDF生成失败: " + error.message);
+    }
   }
 
   // 调整布局
