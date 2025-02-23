@@ -418,43 +418,6 @@ class ERVisualizer {
     }
   }
 
-  // 获取当前图的PDF数据
-  async getPDFData() {
-    try {
-      // 获取PNG数据
-      const dataUrl = await this.getPNGData();
-
-      // 创建PDF文档定义
-      const docDefinition = {
-        pageSize: "A4",
-        pageOrientation: "landscape",
-        content: [
-          {
-            image: dataUrl,
-            width: 750, // A4横向宽度约为750点
-            alignment: "center",
-          },
-        ],
-      };
-
-      // 使用pdfmake创建PDF
-      return new Promise((resolve, reject) => {
-        try {
-          const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-          resolve({
-            download: (filename) => {
-              pdfDocGenerator.download(filename);
-            },
-          });
-        } catch (error) {
-          reject(error);
-        }
-      });
-    } catch (error) {
-      throw new Error("PDF生成失败: " + error.message);
-    }
-  }
-
   // 调整布局
   adjustLayout() {
     this.network.fit();
