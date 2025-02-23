@@ -10,9 +10,34 @@ document.getElementById("parse-btn").addEventListener("click", function () {
 });
 
 // 导出功能
-document.getElementById("export-png").addEventListener("click", function () {
-  // TODO: 实现PNG导出
-});
+document
+  .getElementById("export-png")
+  .addEventListener("click", async function () {
+    try {
+      // 显示加载提示
+      this.disabled = true;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 导出中...';
+
+      // 获取PNG数据
+      const dataUrl = await visualizer.getPNGData();
+
+      // 创建下载链接
+      const link = document.createElement("a");
+      link.download = "er-diagram.png";
+      link.href = dataUrl;
+
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      alert("导出失败：" + error.message);
+    } finally {
+      // 恢复按钮状态
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-download"></i> 导出PNG';
+    }
+  });
 
 document.getElementById("export-pdf").addEventListener("click", function () {
   // TODO: 实现PDF导出
@@ -35,3 +60,14 @@ window.onload = function () {
     automaticLayout: true,
   });
 };
+
+// 添加新的事件监听
+document
+  .getElementById("toggle-physics")
+  .addEventListener("change", function () {
+    visualizer.togglePhysics(this.checked);
+  });
+
+document.getElementById("reset-view").addEventListener("click", function () {
+  visualizer.adjustLayout();
+});

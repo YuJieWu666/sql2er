@@ -1,50 +1,187 @@
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+/* 基础样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+/* 基础样式 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #24292e;
+  background-color: #fff;
+}
+
+/* 移除按钮默认样式 */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  overflow: visible;
+  text-transform: none;
+  -webkit-appearance: button;
+}
+
+/* 主容器布局 */
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* 左侧导航栏 */
+.sidebar {
+  width: 400px;
+  height: 100%;
+  background: #f6f8fa;
+  border-right: 1px solid #e1e4e8;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 20px;
+  background: #24292e;
+  color: white;
+}
+
+.sidebar-header h2 {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.sidebar-panel {
+  padding: 20px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.sidebar-panel h3 {
+  margin-bottom: 15px;
+  color: #24292e;
+}
+
+/* SQL编辑器样式 */
 .editor-container {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 #sql-editor {
   height: 300px;
-  border: 1px solid #ccc;
-  margin-bottom: 10px;
-}
-
-.diagram-container {
-  border: 1px solid #ccc;
-  padding: 20px;
-  background: #fff;
-}
-
-#er-diagram {
-  height: 500px;
-  background: #ffffff;
   border: 1px solid #e1e4e8;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
+/* 按钮样式 */
+.primary-btn {
+  background: #2ea44f;
+  color: white;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.primary-btn:hover {
+  background: #2c974b;
+}
+
+.secondary-btn {
+  background: #fafbfc;
+  color: #24292e;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.secondary-btn:hover {
+  background: #f3f4f6;
+}
+
+/* 工具栏样式 */
 .toolbar {
-  margin-top: 10px;
-  text-align: right;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .toolbar button {
-  margin-left: 10px;
-}
-
-button {
+  flex: 1;
+  min-width: 120px;
+  background: #f6f8fa;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  color: #24292e;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 8px;
 }
 
-button i {
-  font-size: 0.9em;
+.toolbar button:hover {
+  background: #f3f4f6;
+}
+
+/* 复选框样式 */
+.view-settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.view-settings input[type="checkbox"] {
+  margin: 0;
+}
+
+/* 视图设置样式 */
+.view-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 右侧主要内容区域 */
+.main-content {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  background: white;
+  position: relative;
+}
+
+.diagram-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#er-diagram {
+  width: 100%;
+  height: 100%;
+  background: white;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* 全屏模态框样式 */

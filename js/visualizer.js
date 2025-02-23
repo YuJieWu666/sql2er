@@ -95,11 +95,13 @@ class ERVisualizer {
           updateInterval: 25,
         },
       },
-      manipulation: {
-        enabled: true,
-        initiallyActive: true,
+      interaction: {
         dragNodes: true,
         dragView: true,
+        hover: true,
+        multiselect: true,
+        navigationButtons: true,
+        keyboard: true,
       },
     };
   }
@@ -325,7 +327,70 @@ class ERVisualizer {
 
   // 获取当前图的PNG数据URL
   getPNGData() {
-    return this.network.canvas.toDataURL();
+    return new Promise((resolve, reject) => {
+      try {
+        // 获取当前视图的尺寸和位置
+        const scale = this.network.getScale();
+        const position = this.network.getViewPosition();
+        const boundingBox = this.network.getBoundingBox();
+
+        // 创建一个临时容器用于导出
+        const exportContainer = document.createElement("div");
+        exportContainer.style.width = "2000px";
+        exportContainer.style.height = "2000px";
+        exportContainer.style.position = "absolute";
+        exportContainer.style.left = "-9999px";
+        document.body.appendChild(exportContainer);
+
+        // 创建临时网络实例
+        const exportNetwork = new vis.Network(
+          exportContainer,
+          this.network.body.data,
+          {
+            ...this.options,
+            nodes: {
+              ...this.options.nodes,
+              font: {
+                ...this.options.nodes.font,
+                size: 16,
+              },
+            },
+          }
+        );
+
+        // 等待网络完全稳定
+        exportNetwork.once("stabilized", () => {
+          // 确保渲染完成
+          setTimeout(() => {
+            try {
+              // 获取画布元素
+              const canvas = exportContainer.querySelector("canvas");
+              if (!canvas) {
+                throw new Error("Canvas element not found");
+              }
+
+              // 获取画布数据
+              const dataUrl = canvas.toDataURL("image/png", 1.0);
+
+              // 清理临时元素
+              document.body.removeChild(exportContainer);
+              exportNetwork.destroy();
+
+              resolve(dataUrl);
+            } catch (error) {
+              reject(error);
+            }
+          }, 500); // 给予足够的时间完成渲染
+        });
+
+        // 适应视图
+        exportNetwork.fit({
+          animation: false,
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   // 调整布局
